@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Output</title>
+    <style>
+        .highlight {
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Filtered Articles</h1>
+    <p>{{ combined_result }}</p>
+
+    {% if articles %}
+        <table border="1">
+            <thead>
+                <tr>
+                    {% for column in articles[0].keys() %}
+                        <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in articles %}
+                    <tr>
+                        {% for key, value in article.items() %}
+                            <td>{{ value|safe }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No articles found matching the combination: {{ combined_result }}</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('home') }}">Back to Suggestions</a>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N-Gram Suggestion</title>
+</head>
+<body>
+    <h1>Word Suggestion N-Gram</h1>
+    <form action="/suggest" method="post">
+        <label for="input_word">Enter a word:</label>
+        <input type="text" id="input_word" name="input_word" required>
+        <button type="submit">Get Suggestions</button>
+    </form>
+
+    {% if suggestions %}
+    <h2>Suggestions:</h2>
+    <ul>
+        {% for suggestion, probability in suggestions %}
+        <li>
+            <a href="{{ url_for('output', input_word=input_word, chosen_word=suggestion) }}">
+                {{ suggestion }} ({{ probability }})
+            </a>
+            
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+</html>
