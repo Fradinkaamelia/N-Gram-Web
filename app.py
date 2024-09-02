@@ -45,48 +45,43 @@ trigrams = [trigram for sentence in tokens for trigram in ngrams(sentence, 3)]
 bigram_freq = FreqDist(bigrams)
 trigram_freq = FreqDist(trigrams)
 
-# Membuat model bigram dan trigram
-model_bigram = defaultdict(Counter)
-model_trigram = defaultdict(Counter)
+# Hitung frekuensi total untuk unigram (kata)
+unigram_freq = FreqDist([word for sentence in tokens for word in sentence])
 
-for (prev_word, next_word) in bigram_freq:
-    model_bigram[prev_word][next_word] = bigram_freq[(prev_word, next_word)]
+# Menghitung probabilitas bigram
+def bigram_probability(word1, word2):
+    bigram = (word1, word2)
+    return bigram_freq[bigram] / unigram_freq[word1] if unigram_freq[word1] > 0 else 0
 
-for (prev_word1, prev_word2, next_word) in trigram_freq:
-    model_trigram[(prev_word1, prev_word2)][next_word] = trigram_freq[(prev_word1, prev_word2, next_word)]
+# Menghitung probabilitas trigram
+def trigram_probability(word1, word2, word3):
+    trigram = (word1, word2, word3)
+    bigram = (word1, word2)
+    return trigram_freq[trigram] / bigram_freq[bigram] if bigram_freq[bigram] > 0 else 0
 
+# Fungsi untuk memberikan saran kata berdasarkan input
 def suggest_next_word(input_text, num_suggestions=3):
     words = word_tokenize(input_text.lower())
     num_words = len(words)
-
-    if num_words == 0:
-        return None
+    
+    suggestions = defaultdict(float)
     
     if num_words == 1:
         last_word = words[-1]
-        suggestions = model_bigram[last_word]
-        
+        for next_word in unigram_freq:
+            prob = bigram_probability(last_word, next_word)
+            if prob > 0:
+                suggestions[next_word] = prob
+    
     elif num_words == 2:
         last_two_words = tuple(words[-2:])
-        suggestions = model_trigram[last_two_words]
-        
-    else:
-        last_three_words = tuple(words[-3:])
-        suggestions = model_trigram[last_three_words]
-        
-    if not suggestions:
-        return None
-
-    # Mengurutkan kata-kata berdasarkan frekuensi
+        for next_word in unigram_freq:
+            prob = trigram_probability(last_two_words[0], last_two_words[1], next_word)
+            if prob > 0:
+                suggestions[next_word] = prob
+    
     sorted_suggestions = sorted(suggestions.items(), key=lambda x: x[1], reverse=True)
-
-    total_count = sum(suggestions.values())
-    
-    # Menghitung probabilitas untuk setiap kata setelah kata input
-    probabilities = [(next_word, freq / total_count) for next_word, freq in sorted_suggestions]
-    
-    # Mengembalikan saran teratas berdasarkan probabilitas
-    return probabilities[:num_suggestions]
+    return sorted_suggestions[:num_suggestions]
 
 @app.route('/suggest', methods=['GET', 'POST'])
 def home():
